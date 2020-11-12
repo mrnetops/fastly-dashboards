@@ -1,0 +1,7 @@
+groups:
+  - name: example
+    rules:
+    - record: fastly_rt_service_alert_warning
+      expr: topk(40, sum(rate(fastly_rt_requests_total[90s])) by (service_name, service_id))
+    - record: fastly_rt_service_alert_critical
+      expr: topk(20,fastly_rt_service_alertable_warning)
