@@ -27,8 +27,8 @@ Access the Grafana dashboard at http://localhost:3000.
 
 ## Fastly Altitude 2020 presentation
 
-### [Magic tricks with Docker (or how to monitor Fastly in about five minutes)](altitude-2020-video)
+### [Magic tricks with Docker (or how to monitor Fastly in about five minutes)][altitude-2020-video]
 
-[![Magic tricks with Docker (or how to monitor Fastly in about five minutes)](/images/Fastly-Altitude-2020.jpeg)](altitude-2020-video)
+[![Magic tricks with Docker (or how to monitor Fastly in about five minutes)](/images/Fastly-Altitude-2020.jpeg)][altitude-2020-video]
 
 [altitude-2020-video]: https://vimeo.com/480545143
