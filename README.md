@@ -13,6 +13,14 @@ which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] +
 [prom]: https://prometheus.io
 [grafana]: https://grafana.com
 
+## Fastly Altitude 2020 presentation
+
+### [Magic tricks with Docker (or how to monitor Fastly in about five minutes)][altitude-2020-video]
+
+[![Magic tricks with Docker (or how to monitor Fastly in about five minutes)](/images/Fastly-Altitude-2020.jpeg)][altitude-2020-video]
+
+[altitude-2020-video]: https://vimeo.com/480545143
+
 ## Getting started
 
 ```
@@ -23,12 +31,4 @@ Access the Grafana dashboard at http://localhost:3000.
 
 | Fastly Service | Fastly Top Services | Fastly Top Datacenters |
 | ---------------|---------------------|------------------------|
-| ![Fastly Service](/images/Fastly-Service.png) | ![Fastly Top Services](/images/Fastly-Top-Services.png) | ![Fastly Top Datacenters](/images/Fastly-Top-Datacenters.png) |
-
-## Fastly Altitude 2020 presentation
-
-### [Magic tricks with Docker (or how to monitor Fastly in about five minutes)][altitude-2020-video]
-
-[![Magic tricks with Docker (or how to monitor Fastly in about five minutes)](/images/Fastly-Altitude-2020.jpeg)][altitude-2020-video]
-
-[altitude-2020-video]: https://vimeo.com/480545143
+| ![Fastly Service](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Service.png) | ![Fastly Top Services](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Services.png) | ![Fastly Top Datacenters](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Datacenters.png) |
