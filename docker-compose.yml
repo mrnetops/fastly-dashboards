@@ -34,7 +34,7 @@ services:
 
   fastly-exporter:
     image: mrnetops/fastly-exporter:4
-    command: -namespace fastly
+    command: -namespace fastly -service ${SID} 
     environment:
       - FASTLY_API_TOKEN=${FASTLY_API_TOKEN}
     expose:
