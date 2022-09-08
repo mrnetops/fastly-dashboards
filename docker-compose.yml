@@ -1,11 +1,12 @@
 version: '2'
 volumes:
-    prometheus_data: {}
+    alertmanager_data: {}
     grafana_data: {}
+    prometheus_data: {}
 
 services:
   prometheus:
-    image: prom/prometheus:v2.22.0
+    image: prom/prometheus:v2.37.0
     container_name: prometheus
     volumes:
       - ./prometheus:/etc/prometheus
@@ -20,8 +21,24 @@ services:
     ports:
       - 9090:9090
   
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager:/config
+      - alertmanager_data:/data
+    command:
+      - '--config.file=/config/alertmanager.yml'
+      - '--storage.path=/data'
+    expose:
+      - 9093
+    links:
+      - fastly-exporter:fastly-exporter
+    ports:
+            - 9093:9093
+  
   grafana:
-    image: grafana/grafana:7.2.2
+    image: grafana/grafana:9.1.3
     env_file:
       - ./grafana/config.env
     depends_on:
@@ -33,7 +50,7 @@ services:
       - grafana_data:/var/lib/grafana
 
   fastly-exporter:
-    image: mrnetops/fastly-exporter:4
+    image: ghcr.io/fastly/fastly-exporter:v7.2.4
     command: -namespace fastly
     environment:
       - FASTLY_API_TOKEN=${FASTLY_API_TOKEN}

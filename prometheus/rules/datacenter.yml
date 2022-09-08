@@ -1,0 +1,84 @@
+groups:
+  - name: datacenter
+    rules:
+    - record: datacenter:fastly_rt_requests_total:rate
+      expr: sum(rate(fastly_rt_requests_total[120s])) by (datacenter)
+    - record: datacenter:fastlyDatacenter4xxPercent
+      expr: 100 * sum(rate(fastly_rt_status_group_total{status_group="4xx"}[120s])) by (datacenter) / datacenter:fastly_rt_requests_total:rate
+    - record: datacenter:fastlyDatacenter5xxPercent
+      expr: 100 * sum(rate(fastly_rt_status_group_total{status_group="5xx"}[120s])) by (datacenter) / datacenter:fastly_rt_requests_total:rate
+    - record: datacenter:fastlyDatacenterErrorPercent
+      expr: 100 * sum(rate(fastly_rt_errors_total[120s])) by (datacenter) / datacenter:fastly_rt_requests_total:rate
+    - record: datacenter:fastlyDatacenterP99Latency
+      expr: histogram_quantile(0.99,sum(rate(fastly_rt_miss_duration_seconds_bucket[120s])) by (le,datacenter))
+    - record: datacenter:fastlyDatacenterP50Latency
+      expr: histogram_quantile(0.5,sum(rate(fastly_rt_miss_duration_seconds_bucket[120s])) by (le,datacenter))
+    - record: datacenter:alerting
+      expr: count(ALERTS{alertstate="firing", datacenter=~".+"}) by (alertname, datacenter)
+    - record: datacenter:alertNotice
+      expr: min_over_time(datacenter:fastly_rt_requests_total:rate[5m]) > 1
+    - record: datacenter:alertWarning
+      #expr: topk(scalar(count(datacenter:alertNotice) * .2), datacenter:fastly_rt_requests_total:rate and datacenter:alertNotice) or datacenter:alerting
+      expr: topk(scalar(count(datacenter:alertNotice) * .2), datacenter:fastly_rt_requests_total:rate and datacenter:alertNotice)
+    - record: datacenter:alertCritical
+      expr: topk(scalar(count(datacenter:alertNotice) * .1), datacenter:alertWarning)
+    - alert: fastlyDatacenter4xxPercent
+      expr: '((avg_over_time(datacenter:fastlyDatacenter4xxPercent[5m]) > 6) or (datacenter:fastlyDatacenter4xxPercent > 5 and datacenter:alerting{alertname="fastlyDatacenter4xxPercent"})) and datacenter:alertWarning'
+      for: 10m
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenter5xxPercent
+      expr: '((avg_over_time(datacenter:fastlyDatacenter5xxPercent[5m]) > 5) or (datacenter:fastlyDatacenter5xxPercent > 2.5 and datacenter:alerting{alertname="fastlyDatacenter5xxPercent"})) and datacenter:alertWarning'
+      for: 10m
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenterErrorPercent
+      expr: '((avg_over_time(datacenter:fastlyDatacenterErrorPercent[5m]) > 5) or (datacenter:fastlyDatacenterErrorPercent > 2.5 and datacenter:alerting{alertname="fastlyDatacenterErrorPercent"})) and datacenter:alertWarning'
+      for: 10m
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenterP50Latency
+      expr: '((avg_over_time(datacenter:fastlyDatacenterP50Latency[5m]) > 1.2) or (datacenter:fastlyDatacenterP50Latency > .312 and datacenter:alerting{alertname="fastlyDatacenterP50Latency"})) and datacenter:alertWarning'
+      for: 10m
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2fs" $value }})'
+    - alert: fastlyDatacenter4xxPercentMOT
+      expr: 'max_over_time(datacenter:fastlyDatacenter4xxPercent[10m]) > 60 and datacenter:alertWarning'
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenter5xxPercentMOT
+      expr: 'max_over_time(datacenter:fastlyDatacenter5xxPercent[10m]) > 5 and datacenter:alertWarning'
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenterErrorPercentMOT
+      expr: 'max_over_time((min_over_time(datacenter:fastlyDatacenterErrorPercent[3m]))[10m:15s]) > 5 and datacenter:alertWarning'
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenterP50LatencyMOT
+      expr: 'max_over_time(datacenter:fastlyDatacenterP50Latency[10m]) > 1.2 and datacenter:alertWarning'
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2fs" $value }})'
