@@ -1,30 +1,79 @@
 groups:
   - name: datacenter
     rules:
-    - record: datacenter:fastly_rt_requests_total:rate
+
+    ##
+    ## Metrics
+    ##
+
+    - record: fastly_datacenter:requests
       expr: sum(rate(fastly_rt_requests_total[120s])) by (datacenter)
-    - record: datacenter:fastlyDatacenter4xxPercent
-      expr: 100 * sum(rate(fastly_rt_status_group_total{status_group="4xx"}[120s])) by (datacenter) / datacenter:fastly_rt_requests_total:rate
-    - record: datacenter:fastlyDatacenter5xxPercent
-      expr: 100 * sum(rate(fastly_rt_status_group_total{status_group="5xx"}[120s])) by (datacenter) / datacenter:fastly_rt_requests_total:rate
-    - record: datacenter:fastlyDatacenterErrorPercent
-      expr: 100 * sum(rate(fastly_rt_errors_total[120s])) by (datacenter) / datacenter:fastly_rt_requests_total:rate
-    - record: datacenter:fastlyDatacenterP99Latency
-      expr: histogram_quantile(0.99,sum(rate(fastly_rt_miss_duration_seconds_bucket[120s])) by (le,datacenter))
-    - record: datacenter:fastlyDatacenterP50Latency
+    - record: fastly_datacenter:4xx_ratio
+      expr: sum(rate(fastly_rt_status_group_total{status_group="4xx"}[120s])) by (datacenter) / sum(rate(fastly_rt_status_group_total[120s])) by (datacenter)
+    - record: fastly_datacenter:5xx_ratio
+      expr: sum(rate(fastly_rt_status_group_total{status_group="5xx"}[120s])) by (datacenter) / sum(rate(fastly_rt_status_group_total[120s])) by (datacenter)
+    - record: fastly_datacenter:errors_ratio
+      expr: sum(rate(fastly_rt_errors_total[120s])) by (datacenter) / fastly_datacenter:requests
+    - record: fastly_datacenter:latency_p50_seconds
       expr: histogram_quantile(0.5,sum(rate(fastly_rt_miss_duration_seconds_bucket[120s])) by (le,datacenter))
-    - record: datacenter:alerting
+    - record: fastly_datacenter:latency_p99_seconds
+      expr: histogram_quantile(0.99,sum(rate(fastly_rt_miss_duration_seconds_bucket[120s])) by (le,datacenter))
+
+    ##
+    ## Thresholds
+    ##
+
+    - record: fastly_datacenter:4xx_warn_ratio
+      expr: 0.0045+0*fastly_datacenter:alerts_recently{alertname="fastlyDatacenter4xxPercent"} or 0.006+0*fastly_datacenter:requests
+    - record: fastly_datacenter:5xx_warn_ratio
+      expr: 0.0375+0*fastly_datacenter:alerts_recently{alertname="fastlyDatacenter5xxPercent"} or 0.05+0*fastly_datacenter:requests
+    - record: fastly_datacenter:error_warn_ratio
+      expr: 0.0375+0*fastly_datacenter:alerts_recently{alertname="fastlyDatacenter5xxPercent"} or 0.05+0*fastly_datacenter:requests
+    # 826ms would put you in the worst 20% of sites
+    # Per https://www.littledata.io/average/server-response-time
+    - record: fastly_datacenter:latency_p50_warn_seconds
+      expr: 0.620+0*fastly_datacenter:alerts_recently{alertname="fastlyDatacenter5xxPercent"} or 0.826+0*fastly_datacenter:requests
+    # Our P50 latency, for example, tends to be less than one third of our P99 latency
+    # Per https://medium.com/@djsmith42/how-to-metric-edafaf959fc7
+    - record: fastly_datacenter:latency_p99_warn_seconds
+      expr: 1.859+0*fastly_datacenter:alerts_recently{alertname="fastlyDatacenter5xxPercent"} or 2.478+0*fastly_datacenter:requests
+
+
+    #
+    # Records - Alerts
+    #
+
+    - record: fastly_datacenter:alerts
       expr: count(ALERTS{alertstate="firing", datacenter=~".+"}) by (alertname, datacenter)
-    - record: datacenter:alertNotice
-      expr: min_over_time(datacenter:fastly_rt_requests_total:rate[5m]) > 1
-    - record: datacenter:alertWarning
-      #expr: topk(scalar(count(datacenter:alertNotice) * .2), datacenter:fastly_rt_requests_total:rate and datacenter:alertNotice) or datacenter:alerting
-      expr: topk(scalar(count(datacenter:alertNotice) * .2), datacenter:fastly_rt_requests_total:rate and datacenter:alertNotice)
-    - record: datacenter:alertCritical
-      expr: topk(scalar(count(datacenter:alertNotice) * .1), datacenter:alertWarning)
+    - record: fastly_datacenter:alerts_recently
+      expr: sum(sum_over_time(ALERTS{alertstate="firing", datacenter=~".+"}[10m])) by (alertname,datacenter)
+    
+    #
+    # Record - Criteria
+    #
+
+    # notice: some minimum level of traffic over time
+    - record: fastly_datacenter:criteria_notice
+      expr: min_over_time(fastly_datacenter:requests[5m]) > 1
+    # warning: top 20% of notice
+    - record: fastly_datacenter:criteria_warning
+      #expr: topk(scalar(count(fastly_datacenter:criteria_notice) * .2), fastly_datacenter:criteria_notice) or fastly_datacenter:alerts_recently
+      expr: topk(scalar(count(fastly_datacenter:criteria_notice) * .2), sum(fastly_datacenter:criteria_notice) by (datacenter)) or count(fastly_datacenter:alerts_recently) by (datacenter)
+
+    #
+    # Alert Rules
+    #
+
     - alert: fastlyDatacenter4xxPercent
-      expr: '((avg_over_time(datacenter:fastlyDatacenter4xxPercent[5m]) > 6) or (datacenter:fastlyDatacenter4xxPercent > 5 and datacenter:alerting{alertname="fastlyDatacenter4xxPercent"})) and datacenter:alertWarning'
+      expr: (avg_over_time(fastly_datacenter:4xx_ratio[5m]) > fastly_datacenter:4xx_warn_ratio) and fastly_datacenter:criteria_warning
       for: 10m
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenter4xxPercentMOT
+      expr: (max_over_time((min_over_time(fastly_datacenter:4xx_ratio[5m]))[10m:15s]) > fastly_datacenter:4xx_warn_ratio) and fastly_datacenter:criteria_warning
       labels:
         job: 'fastlyDatacenter'
         severity: warning

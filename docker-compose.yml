@@ -1,10 +1,18 @@
-version: '2'
+version: '2.1'
 volumes:
     alertmanager_data: {}
     grafana_data: {}
     prometheus_data: {}
 
 services:
+  promcheck:
+    image: prom/prometheus:v2.37.0
+    container_name: promcheck
+    volumes:
+      - ./prometheus:/etc/prometheus
+    entrypoint: /bin/promtool
+    command: check config /etc/prometheus/prometheus.yml
+
   prometheus:
     image: prom/prometheus:v2.37.0
     container_name: prometheus
@@ -20,6 +28,9 @@ services:
       - fastly-exporter:fastly-exporter
     ports:
       - 9090:9090
+    depends_on:
+      promcheck:
+        condition: service_completed_successfully
   
   alertmanager:
     image: prom/alertmanager:v0.24.0
@@ -51,7 +62,7 @@ services:
 
   fastly-exporter:
     image: ghcr.io/fastly/fastly-exporter:v7.2.4
-    command: -namespace fastly
+    command: ${FASTLY_EXPORTER_OPTIONS:--namespace fastly}
     environment:
       - FASTLY_API_TOKEN=${FASTLY_API_TOKEN}
     expose:

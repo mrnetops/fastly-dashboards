@@ -1,0 +1,14 @@
+version: '2.1'
+
+services:
+  promcheck:
+    image: prom/prometheus:v2.37.0
+    container_name: promcheck
+    volumes:
+      - ./prometheus:/etc/prometheus
+    entrypoint: /bin/promtool
+    command: check config /etc/prometheus/prometheus.yml
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
