@@ -1,6 +1,13 @@
 version: '2.1'
 
 services:
+  amcheck:
+    image: prom/alertmanager:v0.24.0
+    container_name: amcheck
+    volumes:
+      - ./alertmanager:/config
+    entrypoint: /bin/amtool
+    command: check-config /config/alertmanager.yml
   promcheck:
     image: prom/prometheus:v2.37.0
     container_name: promcheck
@@ -8,7 +15,3 @@ services:
       - ./prometheus:/etc/prometheus
     entrypoint: /bin/promtool
     command: check config /etc/prometheus/prometheus.yml
-    expose:
-      - 9090
-    ports:
-      - 9090:9090
