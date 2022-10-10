@@ -158,3 +158,13 @@ groups:
         job: 'fastlyDatacenter'
         severity: warning
       annotations:
+        description: 'High ({{ printf "%.2f%%" $value }})'
+    - alert: fastlyDatacenterP99LatencyMOT3
+      expr: |
+        (max_over_time((min_over_time(fastly_datacenter:latency_p99_seconds[3m]))[10m:15s]) > fastly_datacenter:latency_p99_warn_seconds) 
+        and (fastly_datacenter:criteria_warning_recently)
+      labels:
+        job: 'fastlyDatacenter'
+        severity: warning
+      annotations:
+        description: 'High ({{ printf "%.2fs" $value }})'

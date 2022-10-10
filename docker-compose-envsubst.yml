@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  envsubst:
+    image: bhgedigital/envsubst
+    container_name: envsubst
+    volumes:
+      - ./alertmanager:/mnt
+        #command: sh -c "cat /mnt/alertmanager.yml.envsubst | envsubst > /mnt/alertmanager.yml.envsubst.interpolated"
+    command: sh -c "env"

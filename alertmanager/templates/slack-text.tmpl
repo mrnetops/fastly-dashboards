@@ -1,0 +1,14 @@
+{{ define "slack.text" }}
+  {{ with index .Alerts 0 -}}
+    {{/*
+    :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
+    {{- if .Annotations.runbook }}   :notebook: *<{{ .Annotations.runbook }}|Runbook>*{{ end }}
+    {{- if .Labels.service_id }}   :memo: *<https://manage.fastly.com/configure/services/{{ .Labels.service_id }}|Configuration>*{{ end }}
+    */}}
+    {{ if .Labels.service_id }}*Service ID*: {{ .Labels.service_id }} {{ end }}
+  {{ end }}
+  {{ range $index, $element := .Alerts -}}
+    • {{ .Labels.alertname }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }} - {{ .Annotations.description }}
+  {{ end }}
+{{ end }}
+
