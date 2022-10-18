@@ -3,7 +3,10 @@ groups:
     rules:
 
     ##
-    ## Metrics
+    ## Basic Transformations
+    ## - counter -> rate
+    ## - histogram -> latency
+    ## - etc
     ##
 
     - record: fastly_datacenter:requests
@@ -27,6 +30,8 @@ groups:
 
     ##
     ## Thresholds
+    ## - Hysteresis, for more details see
+    ##   https://promcon.io/2019-munich/talks/improved-alerting-with-prometheus-and-alertmanager/
     ##
 
     - record: fastly_datacenter:4xx_warn_ratio
@@ -54,66 +59,51 @@ groups:
         1.859+0*count(fastly_datacenter:alerts_recently{alertname="fastlyDatacenter5xxPercent"}) by (datacenter)
         or 2.478+0*fastly_datacenter:requests
 
-    #
-    # Records - Alerts
-    #
+    ##
+    ## Alert Status
+    ##
 
     - record: fastly_datacenter:alerts
       expr: count(ALERTS{alertstate="firing", datacenter=~".+"}) by (alertname, datacenter)
     - record: fastly_datacenter:alerts_recently
       expr: sum(sum_over_time(ALERTS{alertstate="firing", datacenter=~".+"}[1h])) by (alertname,datacenter)
     
-    #
-    # Record - Criteria
-    #
+    ##
+    ## Criteria
+    ##
 
-    # notice: some minimum level of traffic over time
+    # Notice: some minimum level of traffic over time
     - record: fastly_datacenter:criteria_notice
       expr: min_over_time(fastly_datacenter:requests[5m]) > 1
     - record: fastly_datacenter:criteria_notice_recently
       expr: count_over_time(fastly_datacenter:criteria_notice[1h])
-    # warning: top 20% of notice
+
+    # Warning: top 20% of notice
     - record: fastly_datacenter:criteria_warning
-      expr: topk(scalar(count(fastly_datacenter:criteria_notice) * .2), sum(fastly_datacenter:criteria_notice) by (datacenter)) or count(fastly_datacenter:alerts_recently) by (datacenter)
+      expr: |
+        topk(
+          scalar(
+            count(fastly_datacenter:criteria_notice) * .2
+          ), sum(fastly_datacenter:criteria_notice) by (datacenter)
+        ) or count(fastly_datacenter:alerts_recently) by (datacenter)
     - record: fastly_datacenter:criteria_warning_recently
       expr: count_over_time(fastly_datacenter:criteria_warning[1h])
 
-    #
-    # Alert Rules
-    #
+    ##
+    ## Alert Rules
+    ## - Hold down timers, for more details see
+    ##   https://utcc.utoronto.ca/~cks/space/blog/sysadmin/PrometheusAlertmanagerFlapping
+    ## - Example: max_over_time(min_over_time(fastly_datacenter:4xx_ratio[3m])[10m:15s])
+    ##   - 
+    ##
 
     - alert: fastlyDatacenter4xxPercent
       expr: |
-        (fastly_datacenter:4xx_ratio > fastly_datacenter:4xx_warn_ratio) 
-        and (fastly_datacenter:criteria_warning_recently)
-      for: 10m
-      labels:
-        job: 'fastlyDatacenter'
-        severity: warning
-      annotations:
-        description: 'High ({{- $value | humanizePercentage }})'
-    - alert: fastlyDatacenter4xxPercentMOT3
-      expr: |
-        (max_over_time((min_over_time(fastly_datacenter:4xx_ratio[3m]))[10m:15s]) > fastly_datacenter:4xx_warn_ratio) 
-        and fastly_datacenter:criteria_warning_recently
-      labels:
-        job: 'fastlyDatacenter'
-        severity: warning
-      annotations:
-        description: 'High ({{- $value | humanizePercentage }})'
-    - alert: fastlyDatacenter4xxPercentMOT5
-      expr: |
-        (max_over_time((min_over_time(fastly_datacenter:4xx_ratio[5m]))[10m:15s]) > fastly_datacenter:4xx_warn_ratio) 
-        and fastly_datacenter:criteria_warning_recently
-      labels:
-        job: 'fastlyDatacenter'
-        severity: warning
-      annotations:
-        description: 'High ({{- $value | humanizePercentage }})'
-    - alert: fastlyDatacenter4xxPercentMOT10
-      expr: |
-        (max_over_time((min_over_time(fastly_datacenter:4xx_ratio[10m]))[10m:15s]) > fastly_datacenter:4xx_warn_ratio) 
-        and fastly_datacenter:criteria_warning_recently
+        (
+          max_over_time(
+            min_over_time(fastly_datacenter:4xx_ratio[3m])[10m:15s]
+          ) > fastly_datacenter:4xx_warn_ratio
+        ) and fastly_datacenter:criteria_warning_recently
       labels:
         job: 'fastlyDatacenter'
         severity: warning
@@ -121,9 +111,11 @@ groups:
         description: 'High ({{- $value | humanizePercentage }})'
     - alert: fastlyDatacenter5xxPercent
       expr: |
-        (fastly_datacenter:5xx_ratio > fastly_datacenter:5xx_warn_ratio) 
-        and (fastly_datacenter:criteria_warning_recently)
-      for: 10m
+        (
+          max_over_time(
+            min_over_time(fastly_datacenter:5xx_ratio[3m])[10m:15s]
+          ) > fastly_datacenter:5xx_warn_ratio
+        ) and fastly_datacenter:criteria_warning_recently
       labels:
         job: 'fastlyDatacenter'
         severity: warning
@@ -131,9 +123,11 @@ groups:
         description: 'High ({{- $value | humanizePercentage }})'
     - alert: fastlyDatacenterErrorPercent
       expr: |
-        (fastly_datacenter:errors_ratio > fastly_datacenter:errors_warn_ratio) 
-        and (fastly_datacenter:criteria_warning_recently)
-      for: 10m
+        (
+          max_over_time(
+            min_over_time(fastly_datacenter:errors_ratio[3m])[10m:15s]
+          ) > fastly_datacenter:errors_warn_ratio
+        ) and (fastly_datacenter:criteria_warning_recently)
       labels:
         job: 'fastlyDatacenter'
         severity: warning
@@ -141,9 +135,11 @@ groups:
         description: 'High ({{- $value | humanizePercentage }})'
     - alert: fastlyDatacenterP50Latency
       expr: |
-        (fastly_datacenter:latency_p50_seconds > fastly_datacenter:latency_p50_warn_seconds) 
-        and (fastly_datacenter:criteria_warning_recently)
-      for: 10m
+        (
+          max_over_time(
+            min_over_time(fastly_datacenter:latency_p50_seconds[3m])[10m:15s]
+          ) > fastly_datacenter:latency_p50_warn_seconds
+        ) and (fastly_datacenter:criteria_warning_recently)
       labels:
         job: 'fastlyDatacenter'
         severity: warning
@@ -151,18 +147,11 @@ groups:
         description: 'High ({{- $value | humanizeDuration }})'
     - alert: fastlyDatacenterP99Latency
       expr: |
-        (fastly_datacenter:latency_p99_seconds > fastly_datacenter:latency_p99_warn_seconds) 
-        and (fastly_datacenter:criteria_warning_recently)
-      for: 10m
-      labels:
-        job: 'fastlyDatacenter'
-        severity: warning
-      annotations:
-        description: 'High ({{- $value | humanizeDuration }})'
-    - alert: fastlyDatacenterP99LatencyMOT3
-      expr: |
-        (max_over_time((min_over_time(fastly_datacenter:latency_p99_seconds[3m]))[10m:15s]) > fastly_datacenter:latency_p99_warn_seconds) 
-        and (fastly_datacenter:criteria_warning_recently)
+        (
+          max_over_time(
+            min_over_time(fastly_datacenter:latency_p99_seconds[3m])[10m:15s]
+          ) > fastly_datacenter:latency_p99_warn_seconds
+        ) and (fastly_datacenter:criteria_warning_recently)
       labels:
         job: 'fastlyDatacenter'
         severity: warning
