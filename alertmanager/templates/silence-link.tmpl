@@ -1,0 +1,10 @@
+{{/* See https://hodovi.cc/blog/creating-awesome-alertmanager-templates-for-slack/ for details */}}
+{{ define "silence.link" -}}
+    {{ .ExternalURL }}/#/silences/new?filter=%7B
+    {{- range .CommonLabels.SortedPairs -}}
+        {{- if ne .Name "alertname" -}}
+            {{- .Name }}%3D"{{- .Value -}}"%2C%20
+        {{- end -}}
+    {{- end -}}
+    alertname%3D"{{- .CommonLabels.alertname -}}"%7D
+{{- end }}

@@ -5,13 +5,13 @@ volumes:
     prometheus_data: {}
 
 services:
-  promcheck:
-    image: prom/prometheus:v2.37.0
-    container_name: promcheck
-    volumes:
-      - ./prometheus:/etc/prometheus
-    entrypoint: /bin/promtool
-    command: check config /etc/prometheus/prometheus.yml
+#  promcheck:
+#    image: prom/prometheus:v2.37.0
+#    container_name: promcheck
+#    volumes:
+#      - ./prometheus:/etc/prometheus
+#    entrypoint: /bin/promtool
+#    command: check config /etc/prometheus/prometheus.yml
 
   prometheus:
     image: prom/prometheus:v2.37.0
@@ -22,15 +22,16 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.external-url=http://localhost:9090'
     expose:
       - 9090
     links:
       - fastly-exporter:fastly-exporter
     ports:
       - 9090:9090
-    depends_on:
-      promcheck:
-        condition: service_completed_successfully
+#    depends_on:
+#      promcheck:
+#        condition: service_completed_successfully
   
   alertmanager:
     image: prom/alertmanager:v0.24.0
@@ -41,6 +42,7 @@ services:
     command:
       - '--config.file=/config/alertmanager.yml'
       - '--storage.path=/data'
+      - '--web.external-url=http://localhost:9093'
     expose:
       - 9093
     links:
