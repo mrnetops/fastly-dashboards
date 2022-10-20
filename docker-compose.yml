@@ -38,10 +38,9 @@ services:
     container_name: alertmanager
     volumes:
       - ./alertmanager:/config
-      - alertmanager_data:/data
+      - alertmanager_data:/alertmanager
     command:
       - '--config.file=/config/alertmanager.yml'
-      - '--storage.path=/data'
       - '--web.external-url=http://localhost:9093'
     expose:
       - 9093
