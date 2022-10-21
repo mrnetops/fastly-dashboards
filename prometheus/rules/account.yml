@@ -36,8 +36,8 @@ groups:
 
     - record: fastly_account:4xx_warn_ratio
       expr: |
-        0.45+0*count(fastly_account:alerts_recently{alertname="fastlyAccount4xxPercent"}) 
-        or 0.6+0*fastly_account:requests
+        0.0375+0*count(fastly_account:alerts_recently{alertname="fastlyAccount4xxPercent"}) 
+        or 0.05+0*fastly_account:requests
     - record: fastly_account:5xx_warn_ratio
       expr: |
         0.0375+0*count(fastly_account:alerts_recently{alertname="fastlyAccount5xxPercent"}) 

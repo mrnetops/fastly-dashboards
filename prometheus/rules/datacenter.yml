@@ -36,8 +36,8 @@ groups:
 
     - record: fastly_datacenter:4xx_warn_ratio
       expr: |
-        0.45+0*count(fastly_datacenter:alerts_recently{alertname="fastlyDatacenter4xxPercent"}) by (datacenter)
-        or 0.6+0*fastly_datacenter:requests
+        0.0375+0*count(fastly_datacenter:alerts_recently{alertname="fastlyDatacenter4xxPercent"}) by (datacenter)
+        or 0.05+0*fastly_datacenter:requests
     - record: fastly_datacenter:5xx_warn_ratio
       expr: |
         0.0375+0*count(fastly_datacenter:alerts_recently{alertname="fastlyDatacenter5xxPercent"}) by (datacenter)
@@ -80,12 +80,16 @@ groups:
 
     # Warning: top 20% of notice
     - record: fastly_datacenter:criteria_warning
+      #expr: |
+      #  topk(
+      #    scalar(
+      #      count(fastly_datacenter:criteria_notice) * .2
+      #    ), sum(fastly_datacenter:criteria_notice) by (datacenter)
+      #  ) or count(fastly_datacenter:alerts_recently) by (datacenter)
       expr: |
-        topk(
-          scalar(
-            count(fastly_datacenter:criteria_notice) * .2
-          ), sum(fastly_datacenter:criteria_notice) by (datacenter)
-        ) or count(fastly_datacenter:alerts_recently) by (datacenter)
+        fastly_datacenter:criteria_notice > scalar(
+          sum(fastly_datacenter:requests) * .01
+        )
     - record: fastly_datacenter:criteria_warning_recently
       expr: count_over_time(fastly_datacenter:criteria_warning[1h])
 
@@ -102,7 +106,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_datacenter:4xx_ratio[3m])[10m:15s]
+            min_over_time(fastly_datacenter:4xx_ratio[10m])[30m:15s]
           ) > fastly_datacenter:4xx_warn_ratio
         ) and (
           fastly_datacenter:criteria_warning_recently
@@ -117,7 +121,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_datacenter:5xx_ratio[3m])[10m:15s]
+            min_over_time(fastly_datacenter:5xx_ratio[10m])[30m:15s]
           ) > fastly_datacenter:5xx_warn_ratio
         ) and (
           fastly_datacenter:criteria_warning_recently
@@ -132,7 +136,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_datacenter:errors_ratio[3m])[10m:15s]
+            min_over_time(fastly_datacenter:errors_ratio[10m])[30m:15s]
           ) > fastly_datacenter:errors_warn_ratio
         ) and (
           fastly_datacenter:criteria_warning_recently
@@ -147,7 +151,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_datacenter:latency_p50_seconds[3m])[10m:15s]
+            min_over_time(fastly_datacenter:latency_p50_seconds[10m])[30m:15s]
           ) > fastly_datacenter:latency_p50_warn_seconds
         ) and (
           fastly_datacenter:criteria_warning_recently
@@ -162,7 +166,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_datacenter:latency_p99_seconds[3m])[10m:15s]
+            min_over_time(fastly_datacenter:latency_p99_seconds[10m])[30m:15s]
           ) > fastly_datacenter:latency_p99_warn_seconds
         ) and (
           fastly_datacenter:criteria_warning_recently

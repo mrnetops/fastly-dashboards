@@ -1,6 +1,6 @@
 {{ define "slack.title" }}
   FA[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.job }}
-  {{- if .CommonLabels.service_name }} ({{ .CommonLabels.service_name }}){{ end }}
-  {{- if .CommonLabels.datacenter }} ({{ .CommonLabels.datacenter }}){{ end }}
+  {{- if .CommonLabels.service_name -}} ({{ .CommonLabels.service_name }}{{- if .CommonLabels.origin -}} -> {{.CommonLabels.origin}}{{ end }}){{ end }}
+  {{- if .CommonLabels.datacenter -}} ({{ .CommonLabels.datacenter }}){{ end }}
 {{ end }}
 
