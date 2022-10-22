@@ -6,7 +6,7 @@
   {{ end }}
 
   {{- range .Alerts }}
-    • <{{ $.ExternalURL }}/#/alerts?filter=alertname%3D%22{{ .Labels.alertname }}%22|{{ .Labels.alertname }}> {{ .Annotations.description -}}
+    • <{{ $.ExternalURL }}/#/alerts?filter=%7Balertname%3D"{{ .Labels.alertname }}"%7D|{{ .Labels.alertname }}> {{ .Annotations.description -}}
   {{ end }}
 {{ end }}
 
