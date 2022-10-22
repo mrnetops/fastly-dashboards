@@ -13,6 +13,16 @@ services:
 #    entrypoint: /bin/promtool
 #    command: check config /etc/prometheus/prometheus.yml
 
+  envsubst:
+    image: bhgedigital/envsubst
+    container_name: envsubst
+    volumes:
+      - ./alertmanager:/mnt
+    command: sh -c "cat /mnt/alertmanager.envsubst | envsubst > /mnt/alertmanager.yml"
+    environment:
+      - FASTLY_DASHBOARDS_SLACK_API_URL=${FASTLY_DASHBOARDS_SLACK_API_URL:-http://localhost:9093/NO_SLACK_API_URL}
+      - FASTLY_DASHBOARDS_SLACK_CONFIG_CHANNEL=${FASTLY_DASHBOARDS_SLACK_CONFIG_CHANNEL:-#NO_SLACK_CONFIG_CHANNEL}
+
   prometheus:
     image: prom/prometheus:v2.37.0
     container_name: prometheus
@@ -29,9 +39,6 @@ services:
       - fastly-exporter:fastly-exporter
     ports:
       - 9090:9090
-#    depends_on:
-#      promcheck:
-#        condition: service_completed_successfully
   
   alertmanager:
     image: prom/alertmanager:v0.24.0
@@ -48,6 +55,9 @@ services:
       - fastly-exporter:fastly-exporter
     ports:
             - 9093:9093
+    depends_on:
+      envsubst:
+        condition: service_completed_successfully
   
   grafana:
     image: grafana/grafana:9.1.3
