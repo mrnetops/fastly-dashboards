@@ -74,7 +74,9 @@ groups:
 
     # Notice: some minimum level of traffic over time
     - record: fastly_datacenter:criteria_notice
-      expr: min_over_time(fastly_datacenter:requests[5m]) > 1
+      expr: |
+        min_over_time(fastly_datacenter:requests[5m]) > 1
+        and count_over_time(fastly_datacenter:requests[5m]) > 2
     - record: fastly_datacenter:criteria_notice_recently
       expr: count_over_time(fastly_datacenter:criteria_notice[1h])
 

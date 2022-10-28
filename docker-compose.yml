@@ -76,6 +76,8 @@ services:
     command: ${FASTLY_EXPORTER_OPTIONS:--namespace fastly}
     environment:
       - FASTLY_API_TOKEN=${FASTLY_API_TOKEN}
+      # minimize spurious (Client.Timeout exceeded while awaiting headers) errors for idle services
+      - FASTLY_EXPORTER_RT_TIMEOUT=120s
     expose:
       - 8080
     ports:
