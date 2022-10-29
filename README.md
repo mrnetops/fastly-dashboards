@@ -21,6 +21,10 @@ which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] +
 
 [altitude-2020-video]: https://vimeo.com/480545143
 
+| Fastly Service | Fastly Top Services | Fastly Top Datacenters |
+| ---------------|---------------------|------------------------|
+| ![Fastly Service](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Service.png) | ![Fastly Top Services](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Services.png) | ![Fastly Top Datacenters](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Datacenters.png) |
+
 ## Getting started
 
 ```
@@ -61,11 +65,9 @@ nerdctl run envsubst
 nerdctl compose up
 ```
 
-Access the Grafana dashboard at http://localhost:3000.
+## Jumping in
 
-| Fastly Service | Fastly Top Services | Fastly Top Datacenters |
-| ---------------|---------------------|------------------------|
-| ![Fastly Service](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Service.png) | ![Fastly Top Services](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Services.png) | ![Fastly Top Datacenters](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Datacenters.png) |
+Access the Grafana dashboard at http://localhost:3000.
 
 ## Troubleshooting
 
