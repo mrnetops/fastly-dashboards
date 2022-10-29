@@ -43,7 +43,7 @@ docker compose up
 
 Prerequisites
 * docker
-* docker-compose > 1.29
+* docker-compose >= 1.29
 
 ```
 docker-compose up
