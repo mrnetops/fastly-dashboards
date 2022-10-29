@@ -24,7 +24,41 @@ which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] +
 ## Getting started
 
 ```
-env FASTLY_API_TOKEN=$MY_TOKEN docker-compose up
+export FASTLY_API_TOKEN=$MY_TOKEN 
+
+git clone https://github.com/mrnetops/fastly-dashboards.git
+cd fastly-dashboards
+```
+
+### Running with docker 
+
+Prerequisites
+* docker
+
+```
+docker compose up
+```
+
+### Running with docker-compose
+
+Prerequisites
+* docker
+* docker-compose > 1.29
+
+```
+docker-compose up
+```
+
+### Running with containerd & nerdctl
+
+Note: we have to work around nerdctl not supporting
+* environmental variable interpolation from the parent environment
+* depends_on: service_completed_successfully
+
+```
+env > .env
+nerdctl run envsubst
+nerdctl compose up
 ```
 
 Access the Grafana dashboard at http://localhost:3000.
@@ -32,3 +66,15 @@ Access the Grafana dashboard at http://localhost:3000.
 | Fastly Service | Fastly Top Services | Fastly Top Datacenters |
 | ---------------|---------------------|------------------------|
 | ![Fastly Service](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Service.png) | ![Fastly Top Services](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Services.png) | ![Fastly Top Datacenters](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Datacenters.png) |
+
+## Troubleshooting
+
+### Graphs are broken and my system is dying!
+
+It can be a wee bit intensive to drink from the Fastly metric firehose, especially if you have a lot of services.
+
+Try adding this when running to only harvest stats for 1/10th of yer services
+
+```
+export FASTLY_EXPORTER_OPTIONS="-service-shard 1/10"
+```
