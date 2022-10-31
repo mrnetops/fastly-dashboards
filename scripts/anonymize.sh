@@ -21,3 +21,15 @@ find grafana/provisioning/dashboards/ -type f \
 
 find grafana/provisioning/dashboards/ -type f \
         | xargs perl -pi -e 's/\[\$service_name_derived\]/[service_name]/g'
+
+find grafana/provisioning/dashboards/ -type f \
+        | xargs perl -pi -e 's/{{origin}}/origin/g'
+
+find alertmanager/templates/ -type f \
+        | xargs perl -pi -e 's/\|{{ .Labels.origin }}/|{{ "origin" }}/g'
+
+find alertmanager/templates/ -type f \
+        | xargs perl -pi -e 's/{{ .CommonLabels.service_name }}/{{ "service_name" }}/g'
+
+find alertmanager/templates/ -type f \
+        | xargs perl -pi -e 's/\|{{ .Labels.service_id }}/|{{ "service_id" }}/g'
