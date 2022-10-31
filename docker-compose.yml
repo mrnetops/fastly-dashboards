@@ -20,8 +20,8 @@ services:
       - ./alertmanager:/mnt
     command: sh -c "cat /mnt/alertmanager.envsubst | envsubst > /mnt/alertmanager.yml"
     environment:
-      - FASTLY_DASHBOARDS_SLACK_API_URL=${FASTLY_DASHBOARDS_SLACK_API_URL:-http://localhost:9093/NO_SLACK_API_URL}
-      - FASTLY_DASHBOARDS_SLACK_CONFIG_CHANNEL=${FASTLY_DASHBOARDS_SLACK_CONFIG_CHANNEL:-#NO_SLACK_CONFIG_CHANNEL}
+      - SLACK_API_URL=${SLACK_API_URL:-http://localhost:9093/NO_SLACK_API_URL}
+      - SLACK_CONFIG_CHANNEL=${SLACK_CONFIG_CHANNEL:-#NO_SLACK_CONFIG_CHANNEL}
 
   prometheus:
     image: prom/prometheus:v2.37.0

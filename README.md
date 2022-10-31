@@ -73,10 +73,18 @@ Access the Grafana dashboard at http://localhost:3000.
 
 ### Graphs are broken and my system is dying!
 
-It can be a wee bit intensive to drink from the Fastly metric firehose, especially if you have a lot of services.
+Processing Fastly metrics can be intensive, especially if you have a lot of services.
 
 Try adding this when running to only harvest stats for 1/10th of yer services
 
 ```
 export FASTLY_EXPORTER_OPTIONS="-service-shard 1/10"
 ```
+
+### No slack alerts
+
+```channel \"#NO_SLACK_CONFIG_CHANNEL\": unexpected status code 404: 404 page not found```
+
+Check that the the following are being exported and have the correct values
+* $SLACK_API_URL
+* $SLACK_CONFIG_CHANNEL
