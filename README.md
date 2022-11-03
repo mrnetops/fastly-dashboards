@@ -71,6 +71,14 @@ Access the Grafana dashboard at http://localhost:3000.
 
 ## Troubleshooting
 
+### no configuration file provided: not found
+
+Per https://github.com/docker-archive/docker-snap#usage
+
+Docker Snap requires that all files that docker needs access to live within your $HOME folder. 
+
+You may run into this if you attempt to run under /tmp for example.
+
 ### Graphs are broken and my system is dying!
 
 Processing Fastly metrics can be intensive, especially if you have a lot of services.
