@@ -3,8 +3,8 @@
 ## All singing, all dancing Fastly dashboards!
 
 [mrnetops/fastly-dashboards][fastly-dashboards] contains a [Docker Compose][compose] setup,
-which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] + 
-[Grafana][grafana] + [Fastly][fastly] dashboard stack.
+which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] + [Alertmanager][alertmanager] +
+[Grafana][grafana] + [Fastly][fastly] dashboard stack with [Slack][slack] alerting integration.
 
 [fastly-dashboards]: https://github.com/mrnetops/fastly-dashboards
 [compose]: https://github.com/docker/compose
@@ -12,6 +12,8 @@ which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] +
 [fastly]: https://www.fastly.com
 [prom]: https://prometheus.io
 [grafana]: https://grafana.com
+[alertmanager]: https://prometheus.io/docs/alerting/latest/alertmanager/
+[slack]: https://www.slack.com
 
 ## Fastly Altitude 2020 presentation
 
@@ -24,6 +26,10 @@ which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] +
 | Fastly Service | Fastly Top Services | Fastly Top Datacenters |
 | ---------------|---------------------|------------------------|
 | ![Fastly Service](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Service.png) | ![Fastly Top Services](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Services.png) | ![Fastly Top Datacenters](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Datacenters.png) |
+
+| Fastly Top Origins | Slack Alerts |
+| ---------------|---------------------|
+| ![Fastly Top Origins](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Fastly-Top-Origins.png) | ![Slack Alerts](https://raw.githubusercontent.com/mrnetops/fastly-dashboards/main/images/Slack-Alerts.png) |
 
 ## Getting started
 
