@@ -74,18 +74,24 @@ groups:
 
     # Notice: some minimum level of traffic over time
     - record: fastly_account:criteria_notice
-      expr: min_over_time(fastly_account:requests[5m]) > 1
+      expr: |
+        min_over_time(fastly_account:requests[5m]) > 1
+        and count_over_time(fastly_account:requests[5m]) > 2
     - record: fastly_account:criteria_notice_recently
       expr: count_over_time(fastly_account:criteria_notice[1h])
 
     # Warning: top 20% of notice
     - record: fastly_account:criteria_warning
+      #expr: |
+      #  topk(
+      #    scalar(
+      #      count(fastly_account:criteria_notice) * .2
+      #    ), sum(fastly_account:criteria_notice) 
+      #  ) or count(fastly_account:alerts_recently) 
       expr: |
-        topk(
-          scalar(
-            count(fastly_account:criteria_notice) * .2
-          ), sum(fastly_account:criteria_notice) 
-        ) or count(fastly_account:alerts_recently) 
+        fastly_account:criteria_notice > scalar(
+          sum(fastly_account:requests) * .01
+        )
     - record: fastly_account:criteria_warning_recently
       expr: count_over_time(fastly_account:criteria_warning[1h])
 
@@ -102,7 +108,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_account:4xx_ratio[3m])[10m:15s]
+            min_over_time(fastly_account:4xx_ratio[10m])[30m:15s]
           ) > fastly_account:4xx_warn_ratio
 
 
@@ -117,7 +123,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_account:5xx_ratio[3m])[10m:15s]
+            min_over_time(fastly_account:5xx_ratio[10m])[30m:15s]
           ) > fastly_account:5xx_warn_ratio
 
 
@@ -132,7 +138,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_account:errors_ratio[3m])[10m:15s]
+            min_over_time(fastly_account:errors_ratio[10m])[30m:15s]
           ) > fastly_account:errors_warn_ratio
 
 
@@ -147,7 +153,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_account:latency_p50_seconds[3m])[10m:15s]
+            min_over_time(fastly_account:latency_p50_seconds[10m])[30m:15s]
           ) > fastly_account:latency_p50_warn_seconds
 
 
@@ -162,7 +168,7 @@ groups:
       expr: |
         (
           max_over_time(
-            min_over_time(fastly_account:latency_p99_seconds[3m])[10m:15s]
+            min_over_time(fastly_account:latency_p99_seconds[10m])[30m:15s]
           ) > fastly_account:latency_p99_warn_seconds
 
 
