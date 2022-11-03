@@ -1,0 +1,12 @@
+{{ define "slack.text" -}}
+
+  {{ with index .Alerts 0 -}}
+    {{- if .Labels.origin }}*Origin*: <https://manage.fastly.com/stats/real-time/services/{{ .Labels.service_id }}/datacenters/all/origins/{{ .Labels.origin }}|{{ .Labels.origin }}>{{ "\n" }}{{ end }}
+    {{- if .Labels.service_id }}*Service ID*: <https://manage.fastly.com/configure/services/{{ .Labels.service_id }}|{{ .Labels.service_id }}>{{ end }}
+  {{ end }}
+
+  {{- range .Alerts }}
+    • <{{ $.ExternalURL }}/#/alerts?filter=%7Balertname%3D"{{ .Labels.alertname }}"%7D|{{ .Labels.alertname }}> {{ .Annotations.description -}}
+  {{ end }}
+{{ end }}
+

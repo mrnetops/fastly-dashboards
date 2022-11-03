@@ -1,11 +1,30 @@
-version: '2'
+version: '2.1'
 volumes:
-    prometheus_data: {}
+    alertmanager_data: {}
     grafana_data: {}
+    prometheus_data: {}
 
 services:
+#  promcheck:
+#    image: prom/prometheus:v2.37.0
+#    container_name: promcheck
+#    volumes:
+#      - ./prometheus:/etc/prometheus
+#    entrypoint: /bin/promtool
+#    command: check config /etc/prometheus/prometheus.yml
+
+  envsubst:
+    image: bhgedigital/envsubst
+    container_name: envsubst
+    volumes:
+      - ./alertmanager:/mnt
+    command: sh -c "cat /mnt/alertmanager.envsubst | envsubst > /mnt/alertmanager.yml"
+    environment:
+      - SLACK_API_URL=${SLACK_API_URL:-http://localhost:9093/NO_SLACK_API_URL}
+      - SLACK_CONFIG_CHANNEL=${SLACK_CONFIG_CHANNEL:-#NO_SLACK_CONFIG_CHANNEL}
+
   prometheus:
-    image: prom/prometheus:v2.22.0
+    image: prom/prometheus:v2.37.0
     container_name: prometheus
     volumes:
       - ./prometheus:/etc/prometheus
@@ -13,6 +32,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.external-url=http://localhost:9090'
     expose:
       - 9090
     links:
@@ -20,8 +40,27 @@ services:
     ports:
       - 9090:9090
   
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager:/config
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/config/alertmanager.yml'
+      - '--web.external-url=http://localhost:9093'
+    expose:
+      - 9093
+    links:
+      - fastly-exporter:fastly-exporter
+    ports:
+            - 9093:9093
+    depends_on:
+      envsubst:
+        condition: service_completed_successfully
+  
   grafana:
-    image: grafana/grafana:7.2.2
+    image: grafana/grafana:9.1.3
     env_file:
       - ./grafana/config.env
     depends_on:
@@ -33,10 +72,12 @@ services:
       - grafana_data:/var/lib/grafana
 
   fastly-exporter:
-    image: mrnetops/fastly-exporter:4
-    command: -namespace fastly
+    image: ghcr.io/fastly/fastly-exporter:v7.2.4
+    command: ${FASTLY_EXPORTER_OPTIONS:--namespace fastly}
     environment:
       - FASTLY_API_TOKEN=${FASTLY_API_TOKEN}
+      # minimize spurious (Client.Timeout exceeded while awaiting headers) errors for idle services
+      - FASTLY_EXPORTER_RT_TIMEOUT=120s
     expose:
       - 8080
     ports:

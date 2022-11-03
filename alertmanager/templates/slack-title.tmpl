@@ -1,0 +1,6 @@
+{{ define "slack.title" }}
+  {{- if eq .Status "firing" }}:collision:{{ else }}:zzz:{{ end }} [{{ .Status | toUpper }}] {{ .CommonLabels.job }}
+  {{- if .CommonLabels.service_name -}} ({{ .CommonLabels.service_name }}){{ end }}
+  {{- if .CommonLabels.datacenter -}} ({{ .CommonLabels.datacenter }}){{ end }}
+{{ end }}
+
