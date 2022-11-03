@@ -1,9 +1,17 @@
+##
+## NOTE!
+##
+## alertmanager.yml GETS OVERWRITTEN BY INTERPOLATION OF alertmanager.envsubst
+## Edit alertmanager.envsubst instead!
+##
+
 global:
   resolve_timeout: 5m
-  slack_api_url: 'https://hooks.slack.com/services/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'
+  slack_api_url: 'http://localhost:9093/NO_SLACK_API_URL'
 templates: ['/config/templates/*.tmpl']
 route:
   group_by: ['...']
+  #group_by: [service_id, service_name, datacenter]
   receiver: default-receiver
   routes:
     - matchers:
@@ -14,14 +22,16 @@ receivers:
   - name: default-receiver
   - name: slack-notifications
     slack_configs:
-    - channel: '#mrnetops_test'
+    - channel: '#NO_SLACK_CONFIG_CHANNEL'
       send_resolved: true
       title: '{{ template "slack.title" . }}'
       text: '{{ template "slack.text" . }}'
+      icon_url: https://avatars3.githubusercontent.com/u/3380462
       actions:
       - type: button
         text: 'Alert :bell:'
-        url: '{{ (index .Alerts 0).GeneratorURL }}'
+        # link to graph instead of table ;)
+        url: '{{ (index .Alerts 0).GeneratorURL | reReplaceAll "&g0.tab=1" "&g0.tab=0" }}'
       - type: button
         text: 'Config :memo:'
         url: '{{- if .CommonLabels.service_id -}}https://manage.fastly.com/configure/services/{{ .CommonLabels.service_id }}{{- end -}}'
@@ -31,4 +41,7 @@ receivers:
       - type: button
         text: 'Dashboard :chart_with_upwards_trend:'
         url: '{{- if .CommonLabels.datacenter -}}http://localhost:3000/d/ubXmEIyZz/fastly-top-services?var-datacenter={{ .CommonLabels.datacenter }}{{- end -}}'
+      - type: button
+        text: 'Silence :no_bell:'
+        url: '{{ template "silence.link" . }}'
 
