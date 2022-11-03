@@ -34,7 +34,9 @@ which boots up a full [fastly-exporter][fastly-exporter] + [Prometheus][prom] + 
 ## Getting started
 
 ```
-export FASTLY_API_TOKEN=$MY_TOKEN 
+export FASTLY_API_TOKEN=$YOUR_TOKEN
+export SLACK_API_URL=$YOUR_URL
+export SLACK_CONFIG_CHANNEL=$YOUR_CHANNEL
 
 git clone https://github.com/mrnetops/fastly-dashboards.git
 cd fastly-dashboards
