@@ -36,16 +36,16 @@ groups:
 
     - record: fastly_service:4xx_warn_ratio
       expr: |
-        0.0375+0*count(fastly_service:alerts_recently{alertname="fastlyService4xxPercent"}) by (service_id,service_name)
-        or 0.05+0*fastly_service:requests
+        0.05+0*count(fastly_service:alerts_recently{alertname="fastlyService4xxPercent"}) by (service_id,service_name)
+        or 0.075+0*fastly_service:requests
     - record: fastly_service:5xx_warn_ratio
       expr: |
-        0.0375+0*count(fastly_service:alerts_recently{alertname="fastlyService5xxPercent"}) by (service_id,service_name)
-        or 0.05+0*fastly_service:requests
+        0.05+0*count(fastly_service:alerts_recently{alertname="fastlyService5xxPercent"}) by (service_id,service_name)
+        or 0.075+0*fastly_service:requests
     - record: fastly_service:errors_warn_ratio
       expr: |
-        0.0375+0*count(fastly_service:alerts_recently{alertname="fastlyServiceErrorPercent"}) by (service_id,service_name)
-        or 0.05+0*fastly_service:requests
+        0.05+0*count(fastly_service:alerts_recently{alertname="fastlyServiceErrorPercent"}) by (service_id,service_name)
+        or 0.075+0*fastly_service:requests
     # 826ms would put you in the worst 20% of sites
     # Per https://www.littledata.io/average/server-response-time
     - record: fastly_service:latency_p50_warn_seconds
@@ -80,14 +80,8 @@ groups:
     - record: fastly_service:criteria_notice_recently
       expr: count_over_time(fastly_service:criteria_notice[1h])
 
-    # Warning: top 20% of notice
+    # Warning: serving at least 1% of traffic
     - record: fastly_service:criteria_warning
-      #expr: |
-      #  topk(
-      #    scalar(
-      #      count(fastly_service:criteria_notice) * .2
-      #    ), sum(fastly_service:criteria_notice) by (service_id,service_name)
-      #  ) or count(fastly_service:alerts_recently) by (service_id,service_name)
       expr: |
         fastly_service:criteria_notice > scalar(
           sum(fastly_service:requests) * .01
@@ -110,10 +104,7 @@ groups:
           max_over_time(
             min_over_time(fastly_service:4xx_ratio[10m])[30m:15s]
           ) > fastly_service:4xx_warn_ratio
-        ) and (
-          fastly_service:criteria_warning_recently
-          or count(fastly_service:alerts_recently{alertname="fastlyService4xxPercent"}) by (service_id,service_name)
-        )
+        ) and fastly_service:criteria_warning_recently
       labels:
         job: 'fastlyService'
         severity: warning
@@ -125,10 +116,7 @@ groups:
           max_over_time(
             min_over_time(fastly_service:5xx_ratio[10m])[30m:15s]
           ) > fastly_service:5xx_warn_ratio
-        ) and (
-          fastly_service:criteria_warning_recently
-          or count(fastly_service:alerts_recently{alertname="fastlyService5xxPercent"}) by (service_id,service_name)
-        )
+        ) and fastly_service:criteria_warning_recently
       labels:
         job: 'fastlyService'
         severity: warning
@@ -140,10 +128,7 @@ groups:
           max_over_time(
             min_over_time(fastly_service:errors_ratio[10m])[30m:15s]
           ) > fastly_service:errors_warn_ratio
-        ) and (
-          fastly_service:criteria_warning_recently
-          or count(fastly_service:alerts_recently{alertname="fastlyServiceErrorPercent"}) by (service_id,service_name)
-        )
+        ) and fastly_service:criteria_warning_recently
       labels:
         job: 'fastlyService'
         severity: warning
@@ -155,10 +140,7 @@ groups:
           max_over_time(
             min_over_time(fastly_service:latency_p50_seconds[10m])[30m:15s]
           ) > fastly_service:latency_p50_warn_seconds
-        ) and (
-          fastly_service:criteria_warning_recently
-          or count(fastly_service:alerts_recently{alertname="fastlyServiceP50Latency"}) by (service_id,service_name)
-        )
+        ) and fastly_service:criteria_warning_recently
       labels:
         job: 'fastlyService'
         severity: warning
@@ -170,10 +152,7 @@ groups:
           max_over_time(
             min_over_time(fastly_service:latency_p99_seconds[10m])[30m:15s]
           ) > fastly_service:latency_p99_warn_seconds
-        ) and (
-          fastly_service:criteria_warning_recently
-          or count(fastly_service:alerts_recently{alertname="fastlyServiceP99Latency"}) by (service_id,service_name)
-        )
+        ) and fastly_service:criteria_warning_recently
       labels:
         job: 'fastlyService'
         severity: warning
